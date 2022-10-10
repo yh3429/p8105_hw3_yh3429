@@ -5,12 +5,56 @@ output: html_document
 date: "2022-10-10"
 ---
 
-## Problem 1
-
 ### load the data from the `p8015.datasets`
 
-```{r}
+```{r , message=FALSE}
+library(tidyverse)
+
 library(p8105.datasets)
+```
+
+
+
+
+## Problem 1
+
+#### Short description
+In this instacart data, there are **1384,617** observations and **15** variables. The key variables include `order_id` `product_id` `user_id` `eval_set` `product_name` `department_id` `department` `aisle_id` `aisle` and so on. 
+```{r}
 data("instacart")
+```
+
+#### How many aisles are there, and which aisles are the most items ordered from?
+There are **134** aisles and `fresh_vegetables`are the most items ordered, with **150,609** ordered items. 
+
+```{r}
+instacart %>%  group_by (aisle) %>% summarize(n_obs = n()) %>% 
+  mutate(aisle_ranking = min_rank(n_obs))
+```
+#### Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. 
+```{r}
+aisles_plot=
+  instacart %>% 
+  group_by (aisle) %>% 
+  summarize(n_obs = n()) %>% 
+  filter(n_obs >10000) %>% 
+ggplot (aes(x= aisle, y=n_obs))+geom_point()+labs (x="aisle names" , y="numbers of itmes", title = "plot of the number of items ordered in each aisle")+  theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust = 1))
+
+ggsave("aisles_plot.pdf")
+```
+
+#### Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+```{r}
+ instacart %>% 
+  select (aisle, everything()) %>% 
+  subset(aisle == "baking ingredients" ) 
+  
+```
+
+#### Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+
+```{r}
+ 
+ 
 ```
 
