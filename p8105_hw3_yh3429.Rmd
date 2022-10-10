@@ -4,3 +4,13 @@ author: "Yujie Huang"
 output: html_document
 date: "2022-10-10"
 ---
+
+## Problem 1
+
+### load the data from the `p8015.datasets`
+
+```{r}
+library(p8105.datasets)
+data("instacart")
+```
+
