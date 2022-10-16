@@ -10,6 +10,7 @@ date: "2022-10-10"
 library(tidyverse)
 library(ggplot2)
 library(p8105.datasets)
+library(patchwork)
 ```
 
 
@@ -131,6 +132,7 @@ ggplot(aes(x = activity_time, y = activity_counts, group= day)) +
 
 ## Problem 3
 
+#### Do some data cleaning. 
 ```{r}
 data("ny_noaa")
 
@@ -144,6 +146,22 @@ ny_noaa_tidy =
          tmax = paste(tmax, "0.1Celsius"),
          tmin = paste(tmin, "0.1Celsius"))
 
+most_commonly_snowfall=
+  count(ny_noaa_tidy, snow) %>% arrange(desc(n)) %>% head(n=1)
+
 ```
+For snowfall, the most commonly observed values are **0mm**. 
+
+
+#### Make a two-panel plot showing the average **max** temperature in January and in July in each station across years. 
+```{r}
+
+
+```
+
+
+
+
+
 
 
