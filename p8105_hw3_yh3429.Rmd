@@ -10,6 +10,7 @@ date: "2022-10-10"
 library(tidyverse)
 library(ggplot2)
 library(p8105.datasets)
+library(ggridges)
 library(patchwork)
 ```
 
@@ -18,50 +19,69 @@ library(patchwork)
 
 ## Problem 1
 
-#### Short description
-In this instacart data, there are **1384,617** observations and **15** variables. The key variables include `order_id` `product_id` `user_id` `eval_set` `product_name` `department_id` `department` `aisle_id` `aisle` and so on. 
+#### Read in the data
+
 ```{r}
 data("instacart")
-```
 
-#### How many aisles are there, and which aisles are the most items ordered from?
-
-There are **134** aisles and `fresh_vegetables`are the most items ordered, with **150,609** ordered items. 
-```{r}
-instacart %>%  group_by (aisle) %>% summarize(n_obs = n()) %>% 
-  mutate(aisle_ranking = min_rank(n_obs))
-```
-#### Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. 
-```{r}
-aisles_plot=
+instacart = 
   instacart %>% 
-  group_by (aisle) %>% 
-  summarize(n_obs = n()) %>% 
-  filter(n_obs >10000) %>% 
-ggplot (aes(x= aisle, y=n_obs))+geom_point()+labs (x="aisle names" , y="numbers of itmes", title = "plot of the number of items ordered in each aisle")+  theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust = 1))
-
-ggsave("aisles_plot.pdf")
+  as_tibble(instacart)
 ```
 
-#### Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+#### Answer questions about the data
+
+This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns, with each row resprenting a single product from an instacart order. Variables include identifiers for user, order, and product; the order in which each product was added to the cart. There are several order-level variables, describing the day and time of the order, and number of days since prior order. Then there are several item-specific variables, describing the product name (e.g. Yogurt, Avocado), department (e.g. dairy and eggs, produce), and aisle (e.g. yogurt, fresh fruits), and whether the item has been ordered by this user in the past. In total, there are `r instacart %>% select(product_id) %>% distinct %>% count` products found in `r instacart %>% select(user_id, order_id) %>% distinct %>% count` orders from `r instacart %>% select(user_id) %>% distinct %>% count` distinct users.
+
+Below is a table summarizing the number of items ordered from aisle. In total, there are 134 aisles, with fresh vegetables and fresh fruits holding the most items ordered by far.
+
 ```{r}
- instacart %>% 
-  select (aisle, everything()) %>% 
-  subset(aisle == "baking ingredients" ) 
+instacart %>% 
+  count(aisle) %>% 
+  arrange(desc(n))
+```
+
+Next is a plot that shows the number of items ordered in each aisle. Here, aisles are ordered by ascending number of items.
+
+```{r}
+instacart %>% 
+  count(aisle) %>% 
+  filter(n > 10000) %>% 
+  mutate(aisle = fct_reorder(aisle, n)) %>% 
+  ggplot(aes(x = aisle, y = n)) + 
+  geom_point() + 
+  labs(title = "Number of items ordered in each aisle") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+```
+
+Our next table shows the three most popular items in aisles `baking ingredients`, `dog food care`, and `packaged vegetables fruits`, and includes the number of times each item is ordered in your table.
+
+```{r}
+instacart %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>%
+  group_by(aisle) %>% 
+  count(product_name) %>% 
+  mutate(rank = min_rank(desc(n))) %>% 
+  filter(rank < 4) %>% 
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+Finally is a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week. This table has been formatted in an untidy manner for human readers. Pink Lady Apples are generally purchased slightly earlier in the day than Coffee Ice Cream, with the exception of day 5.
+
+```{r}
+instacart %>%
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
+  group_by(product_name, order_dow) %>%
+  summarize(mean_hour = mean(order_hour_of_day)) %>%
+  spread(key = order_dow, value = mean_hour) %>%
+  knitr::kable(digits = 2)
+```
+
+
+
   
-```
-
-#### Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
-```{r}
- 
- 
-```
-
-
-
-
-
-
 
 
 
@@ -135,19 +155,33 @@ ggplot(aes(x = activity_time, y = activity_counts, group= day)) +
 #### Do some data cleaning. 
 ```{r}
 data("ny_noaa")
+```
 
+```{r}
+noaa_missing = ny_noaa %>% 
+  summarize(
+    prcp_missing = mean(is.na(prcp)),
+    snow_missing = mean(is.na(snow)),
+    snwd_missing = mean(is.na(snwd)),
+    tmax_missing = mean(is.na(tmax)),
+    tmin_missing = mean(is.na(tmin)))
+```
+
+```{r}
 ny_noaa_tidy =
   ny_noaa %>% 
   janitor::clean_names() %>%
   separate(date, into = c("year", "month", "day")) %>%
-  mutate(prcp = paste(prcp, "0.1mm"),
-         snow = paste(snow, "mm"),
-         snwd = paste(snwd, "mm"),
-         tmax = paste(tmax, "0.1Celsius"),
-         tmin = paste(tmin, "0.1Celsius"))
+  mutate(month = month.name[as.numeric(month)]) %>% 
+  mutate(year = as.numeric(year), 
+         tmax = as.numeric(tmax)/10,
+         tmin = as.numeric(tmin)/10,
+         prcp = as.numeric(prcp)/10) 
+ 
 
 most_commonly_snowfall=
-  count(ny_noaa_tidy, snow) %>% arrange(desc(n)) %>% head(n=1)
+  count(ny_noaa_tidy, snow) %>% 
+  arrange(desc(n)) %>% head(n=1)
 
 ```
 For snowfall, the most commonly observed values are **0mm**. 
@@ -155,13 +189,57 @@ For snowfall, the most commonly observed values are **0mm**.
 
 #### Make a two-panel plot showing the average **max** temperature in January and in July in each station across years. 
 ```{r}
-
+ny_noaa_tidy %>%
+    filter(month %in% c("January","July")) %>%
+    group_by(id, year, month) %>% 
+    mutate(average_tmax = mean(tmax, na.rm=TRUE)) %>% 
+    ggplot(aes(x = year, y= average_tmax, color=month)) +
+    geom_line (alpha=0.5) + 
+    facet_grid(~month) +
+    labs(
+      x= "Years",
+      y= "The average max temperature",
+      title= "The average max temperature in January and in July in each station across years"
+    )
+  
+  
 
 ```
 
 
+#### Make a two-panel plot 
 
+#### (i)a plot for `tmax` vs `tmin` 
+```{r}
+tmax_tmin_p =
+  ny_noaa_tidy %>%  
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_hex(alpha = .5) +
+  theme(legend.position = "none")+
+   labs(
+      x= "The minimum temperature (°C)",
+      y= "The maximum temperature (°C)",
+      title= "The plot for tmax vs tmin"
+    )+ theme(legend.position = "right")
 
+```
 
-
+#### (ii) the distribution plot
+```{r}
+snowfall_dens_p =
+  ny_noaa_tidy %>% 
+  mutate(year = as.factor(year)) %>% 
+  filter(snow > 0, snow < 100) %>% 
+  ggplot(aes(x = snow, y = year, fill = year))+
+  geom_density_ridges(alpha = 0.4)+
+   labs(
+      x= "The snowfall values (mm)",
+      y= "Years",
+      title= "The distribution of snowfall values by year"
+    )+theme(legend.position = "right")
+```
+#### Juxtapose two plots
+```{r}
+tmax_tmin_p + snowfall_dens_p
+```
 
