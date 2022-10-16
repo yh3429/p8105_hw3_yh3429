@@ -184,6 +184,8 @@ most_commonly_snowfall=
   arrange(desc(n)) %>% head(n=1)
 
 ```
+This dataset had **2595176** observations and **9** variables, and the key variables included `id`, `year`, `month`,`day`, `pcrp`, `snow`, `tmax`, and `tmin`.  
+The variables `tmax`and `tmin` had relatively more missing data in this dataset, and there was up to 43.7% missing data in these two variables. 
 For snowfall, the most commonly observed values are **0mm**. 
 
 
@@ -201,11 +203,8 @@ ny_noaa_tidy %>%
       y= "The average max temperature",
       title= "The average max temperature in January and in July in each station across years"
     )
-  
-  
-
 ```
-
+Based on the plot, in January, the average max temperature range was from -10°C to 10°C across years. In July, the average max temperature range was from 22°C to 30°C across years. There were outliers present. For example, in January, there was a distinct outlier about -14 °C. In July, there was an obvious outlier about 14°C.
 
 #### Make a two-panel plot 
 
