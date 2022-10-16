@@ -1,17 +1,15 @@
 ---
 title: "p8105_hw3_yh3429"
-author: "Yujie Huang"
 output: html_document
 date: "2022-10-10"
 ---
 
-### load the data from the `p8015.datasets`
+#### **Load the data from the `p8015.datasets`**
 
 ```{r , message=FALSE}
 library(tidyverse)
-library(p8105.datasets)
 library(ggplot2)
-
+library(p8105.datasets)
 ```
 
 
@@ -59,9 +57,18 @@ ggsave("aisles_plot.pdf")
 ```
 
 
+
+
+
+
+
+
+
+
+
 ## Problem 2
 
-#### Load, tidy, and otherwise wrangle the data. Describe the resulting dataset.
+#### Load and tidy the data. Describe the resulting dataset.
 
 There are **6** variables and **50,400** observations in the resulting dataset.The key variables include `week` `day_id` `day` `activity_time` `activity_counts` and `day_of_week`.
 ```{r}
@@ -84,19 +91,19 @@ accel = read_csv("./data/accel_data.csv") %>%
 
 accel
 ```
-#### Create a total acitivty variable for each day and a table showing these totals.Are any trends apparent?
+#### Create a total acitivty variable and a table.Are any trends apparent?
 
-Based on looking at the table, there aren't any apparent trends presenting. 
+ 
 ```{r}
 total_activity=
   accel %>% group_by(week, day) %>% summarise(total_activity= sum(activity_counts)) %>%  knitr::kable()
 
 total_activity
 ```
+*Based on looking at the table, there aren't any apparent trends presenting.*
 
-####  Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week.  Describe in words any patterns or conclusions you can make based on this graph.
 
-
+####  Make a single-panel plot. Describe in words any patterns.
 ```{r}
 accel %>% 
 ggplot(aes(x = activity_time, y = activity_counts, group= day)) +
@@ -112,9 +119,31 @@ ggplot(aes(x = activity_time, y = activity_counts, group= day)) +
   )
     
 ```
+*Based on this graph, this 63 year-old male patient with BMI 25 had a relatively higher activity counts on Friday between 19:00 hour and 22:00 hour. In addition, he also had a relatively higher activity counts on Sunday between 11:00 hour and 12:00 hour. *
+
+
+
+
+
+
 
 
 
 ## Problem 3
+
+```{r}
+data("ny_noaa")
+
+ny_noaa_tidy =
+  ny_noaa %>% 
+  janitor::clean_names() %>%
+  separate(date, into = c("year", "month", "day")) %>%
+  mutate(prcp = paste(prcp, "0.1mm"),
+         snow = paste(snow, "mm"),
+         snwd = paste(snwd, "mm"),
+         tmax = paste(tmax, "0.1Celsius"),
+         tmin = paste(tmin, "0.1Celsius"))
+
+```
 
 
